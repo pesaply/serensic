@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <title>Serensic by pesaply</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>Serensic</h1>
+        <h2>Serensic SMS Api</h2>
+
+        <section id="downloads">
+          <a href="https://github.com/pesaply/serensic/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/pesaply/serensic/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/pesaply/serensic" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <p>I Promise To ReWrite This Documentation 
+It is assumed the reader has already installed Serensic and at least read the HTTP API and The message router chapters and knows enough about Serensic’s architecture/design concepts.
+Sending SMS
+Subsequent chapters present how to send and receive messages through Serensic HTTP API and some more advanced use cases, such as manipulating receipts and complex routings, will look like.</p>
+
+<p>Sending a SMS is done through the HTTP API:</p>
+
+<h1>
+<a id="python-example" class="anchor" href="#python-example" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Python example</h1>
+
+<h1>
+<a id="httpapiserensiccom" class="anchor" href="#httpapiserensiccom" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><a href="http://api.serensic.com">http://api.serensic.com</a>
+</h1>
+
+<p>import urllib2
+import urllib</p>
+
+<p>baseParams = {'username':'foo', 'password':'bar', 'to':'+25565', 'content':'Hello'}</p>
+
+<h1>
+<a id="send-an-sms-mt-with-minimal-parameters" class="anchor" href="#send-an-sms-mt-with-minimal-parameters" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Send an SMS-MT with minimal parameters</h1>
+
+<p>urllib2.urlopen("<a href="http://api.serensic.com:1515/send?%s">http://api.serensic.com:1515/send?%s</a>" % urllib.urlencode(baseParams)).read()</p>
+
+<h1>
+<a id="send-an-sms-mt-with-defined-originating-address" class="anchor" href="#send-an-sms-mt-with-defined-originating-address" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Send an SMS-MT with defined originating address</h1>
+
+<p>baseParams['from'] = 'YourCompany'
+urllib2.urlopen("<a href="http://api.serensic.com:1515/send?%s">http://api.serensic.com:1515/send?%s</a>" % urllib.urlencode(baseParams)).read()</p>
+
+<p>In PHP:</p>
+
+<p>&lt;?php
+// Sending simple message using PHP
+// <a href="http://api.serensic.com">http://api.serensic.com</a></p>
+
+<p>$baseurl = '<a href="http://api.serensic.com:1515/send">http://api.serensic.com:1515/send</a>'</p>
+
+<p>$params = '?username=foo'
+$params.= '&amp;password=bar'
+$params.= '&amp;to='.urlencode('+25565')
+$params.= '&amp;content='.urlencode('Hello world !')</p>
+
+<p>$response = file_get_contents($baseurl.$params);
+?&gt;</p>
+
+<p>In Ruby:</p>
+
+<h1>
+<a id="sending-simple-message-using-ruby" class="anchor" href="#sending-simple-message-using-ruby" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sending simple message using Ruby</h1>
+
+<h1>
+<a id="httpapiserensiccom-1" class="anchor" href="#httpapiserensiccom-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a><a href="http://api.serensic.com">http://api.serensic.com</a>
+</h1>
+
+<p>require 'net/http'</p>
+
+<p>uri = URI('<a href="http://api.serensic.com:1515/send">http://api.serensic.com:1515/send</a>')
+params = { :username =&gt; 'foo', :password =&gt; 'bar',
+           :to =&gt; '+25565', :content =&gt; 'Hello world' }
+uri.query = URI.encode_www_form(params)</p>
+
+<p>response = Net::HTTP.get_response(uri)</p>
+
+<p>c.f. HTTP API for more details about sending SMS with receipt enquiry, long content etc ...
+Receiving SMS</p>
+
+<p>Receiving a SMS is done through the HTTP API, this a PHP script pointed by Serensic for every received SMS (using routing):</p>
+
+<p>&lt;?php
+// Receiving simple message using PHP through HTTP Post
+// This example will store every received SMS to a SQL table
+// <a href="http://api.serensic.com">http://api.serensic.com</a></p>
+
+<p>$MO_SMS = $_POST;</p>
+
+<p>$db = pg_connect('host=api.serensic.com port=5432 dbname=sms_demo user=Serensic password=jajapwd');
+if (!$db)
+    // We'll not ACK the message, Serensic will resend it later
+    die("Error connecting to DB");</p>
+
+<p>$QUERY = "INSERT INTO sms_mo(id, from, to, cid, priority, coding, validity, content) ";
+$QUERY.= "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');";</p>
+
+<p>$Q = sprintf($QUERY, pg_escape_string($MO_SMS['id']), 
+                     pg_escape_string($MO_SMS['from']), 
+                     pg_escape_string($MO_SMS['to']), 
+                     pg_escape_string($MO_SMS['origin-connector']), 
+                     pg_escape_string($MO_SMS['priority']), 
+                     pg_escape_string($MO_SMS['coding']), 
+                     pg_escape_string($MO_SMS['validity']), 
+                     pg_escape_string($MO_SMS['content'])
+                     );
+pg_query($Q);
+pg_close($db);</p>
+
+<p>// Acking back Serensic is mandatory
+echo "ACK/Serensic";</p>
+
+<p>In the above example, there’s an error handling where the message is not ACKed if there’s a database connection problem, if it occurs, the script will return “Error connecting to DB” when Serensic HTTP thrower is waiting for a “ACL/Serensic”, this will lead to a message re-queue and later re-delivery to the same script, this behaviour is explained in Processing.</p>
+
+<p>Another example of an interactive SMS application:</p>
+
+<p>&lt;?php
+// Will filter received messages, if the syntax is correct (weather )
+// it will provide a <code>fake</code> weather forecast back to the user.
+// <a href="http://api.serensic.com">http://api.serensic.com</a></p>
+
+<p>$MO_SMS = $_POST;</p>
+
+<p>// Acking back Serensic is mandatory
+echo "ACK/Serensic";</p>
+
+<p>// Syntax check
+if (!preg_match('/^(weather) (.*)/', $MO_SMS['content'], $matches))
+    $RESPONSE = "SMS Syntax error, please type 'weather city' to get a fresh weather forecast";
+else
+    $RESPONSE = $martches[2]." forecast: Sunny 21°C, 13Knots NW light wind";</p>
+
+<p>// Send $RESPONSE back to the user ($MO_SMS['from'])
+$baseurl = '<a href="http://api.serensic.com:1515/send">http://api.serensic.com:1515/send</a>'
+$params = '?username=foo'
+$params.= '&amp;password=bar'
+$params.= '&amp;to='.urlencode($MO_SMS['from'])
+$params.= '&amp;content='.urlencode($RESPONSE)</p>
+
+<p>$response = file_get_contents($baseurl.$params);</p>
+
+<p>// Note:
+// If you need to check if the message is really delivered (or at least, taken by Serensic for delivery)
+// you must test for $response value, it must begin with "Success", c.f. HTTP API doc for more details</p>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
